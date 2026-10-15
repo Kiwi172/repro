@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "repro"
+version = "0.1.0"
+description = "Does the finding still reproduce? Replays the curl PoCs in your finding files and diffs responses against the saved snapshot. Stdlib-only."
+requires-python = ">=3.9"
+license = { text = "MIT" }
+
+[project.scripts]
+repro = "repro:main"
+
+[tool.setuptools]
+py-modules = ["repro"]
