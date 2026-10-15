@@ -47,6 +47,16 @@ def serve():
     return srv
 
 
+try:  # reset the fake server's behaviour between tests under pytest;
+    import pytest              # the standalone runner resets it itself
+    @pytest.fixture(autouse=True)
+    def _reset_state():
+        STATE.update(status=500, body=b"internal error", extra_hdr={},
+                     hits=0)
+except ImportError:
+    pass
+
+
 def run(*argv):
     return subprocess.run([sys.executable, TOOL, *argv],
                           capture_output=True, text=True)
