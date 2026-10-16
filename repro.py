@@ -141,12 +141,18 @@ def parse_curl(cmd: str):
 
 
 def parse_http_file(text: str):
-    """Raw .http files: METHOD /path HTTP/1.1, headers, blank, body."""
+    """Raw .http files: METHOD /path HTTP/1.1, headers, blank, body.
+
+    The body ends at a line like '--- response ---' (pocpaste evidence
+    blocks embed the captured response after that marker; the request is
+    everything before it).
+    """
     for block in re.split(r"\n\s*#{3,}.*|\n\s*={3,}.*", text):
         block = block.strip()
         if not block:
             continue
         head, _, rest = block.partition("\n\n")
+        rest = re.split(r"(?:^|\n)\s*-{3,}\s*response\s*-{3,}\s*\n", rest)[0]
         lines = head.splitlines()
         first = lines[0].strip()
         m = re.match(r"(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+(\S+)"
@@ -176,13 +182,16 @@ def parse_http_file(text: str):
 
 def extract_requests(path: Path):
     text = path.read_text(errors="replace")
+    reqs = []
     if path.suffix.lower() in (".http", ".rest"):
         return list(parse_http_file(text))
-    reqs = []
     for cmd in extract_curl(text):
         r = parse_curl(cmd)
         if r:
             reqs.append(r)
+    # fenced ```http evidence blocks (written by pocpaste)
+    for block in re.findall(r"```http\s*\n(.*?)```", text, re.S):
+        reqs.extend(parse_http_file(block))
     return reqs
 
 

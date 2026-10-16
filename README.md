@@ -99,8 +99,8 @@ repro finding.md --header "Authorization: Bearer <token>"
 
 | input | how |
 |---|---|
-| `*.md`, `*.sh` | `curl` commands inside fenced code blocks (or bare lines), including backslash continuations, combined short flags (`-sI`), attached values (`-HName:v`), `-X/-d/-I` method inference, `-u`, `-b`, `-A`, `-H` |
-| `*.http`, `*.rest` | raw requests: `METHOD /path HTTP/1.1`, headers, blank line, body |
+| `*.md`, `*.sh` | `curl` commands inside fenced code blocks (or bare lines), including backslash continuations, combined short flags (`-sI`), attached values (`-HName:v`), `-X/-d/-I` method inference, `-u`, `-b`, `-A`, `-H`; fenced ` ```http ` evidence blocks (as written by [pocpaste](https://github.com/Kiwi172/pocpaste)) are replayed too |
+| `*.http`, `*.rest` | raw requests: `METHOD /path HTTP/1.1`, headers, blank line, body (body ends at a `--- response ---` marker, so captured evidence is replayable as-is) |
 
 Responses are compared on: status line, all headers except a fixed noise
 list, and the body (SHA-256 for equality, unified diff for text bodies up

@@ -118,6 +118,26 @@ def test_parse_http_file():
     assert r["body"].startswith(b'{"a":1}')  # trailing newline normalized
 
 
+def test_evidence_block_body_stops_at_response_marker():
+    block = ("POST /api/login HTTP/1.1\nHost: e.example\n\n{\"a\":1}\n"
+             "--- response ---\nHTTP/1.1 500 Internal Server Error\n"
+             "content-type: application/json\n\n{\"error\":500}\n")
+    reqs = list(rp.parse_http_file(block))
+    assert len(reqs) == 1
+    assert reqs[0]["body"] == b'{"a":1}'      # response not in the body
+
+
+def test_extract_reads_fenced_http_blocks(tmp_path):
+    md = tmp_path / "finding.md"
+    md.write_text(
+        "# F — finding\n\n```http\nGET /api/x HTTP/1.1\nHost: e.example\n\n"
+        "--- response ---\nHTTP/1.1 200 OK\n\nok\n```\n")
+    reqs = rp.extract_requests(md)
+    assert len(reqs) == 1
+    assert reqs[0]["method"] == "GET"
+    assert reqs[0]["url"] == "https://e.example/api/x"
+
+
 # ---------------------------------------------------------------------------
 # replay + verdicts (local server)
 # ---------------------------------------------------------------------------
